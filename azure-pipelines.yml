@@ -15,6 +15,9 @@ pr:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  TZ: Australia/Brisbane   # the date-filter check assumes Brisbane time
+
 steps:
   - task: NodeTool@0
     displayName: Use Node 22

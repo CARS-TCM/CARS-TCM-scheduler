@@ -18,6 +18,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Sample sessions are in Brisbane time; the date-filter check depends on the timezone.
+      TZ: Australia/Brisbane
     steps:
       - uses: actions/checkout@v4
 
