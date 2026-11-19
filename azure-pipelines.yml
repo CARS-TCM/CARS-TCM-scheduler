@@ -1,0 +1,54 @@
+# Azure DevOps pipeline: test, build and publish the TRACE R8 scheduler.
+# Runs on every push to main, and on pull requests.
+# Output: a downloadable "site" build artifact (the contents of dist/) that IT can host.
+
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: NodeTool@0
+    displayName: Use Node 22
+    inputs:
+      versionSpec: '22.x'
+
+  - script: npm install
+    displayName: Install packages
+
+  - script: npm run verify
+    displayName: Business-rule checks
+
+  # Reported but not blocking yet. When `npm run typecheck` is clean on your computer,
+  # change continueOnError to false so type errors stop the build.
+  - script: npm run typecheck
+    displayName: Type check
+    continueOnError: true
+
+  - script: npx vite build
+    displayName: Build
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish built site
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    inputs:
+      PathtoPublish: dist
+      ArtifactName: site
+
+  # --- Hosting (ask IT first) ---------------------------------------------------
+  # Once IT provides an Azure Static Web App (or another approved host), add a deploy step here.
+  # For Azure Static Web Apps behind Council sign-in it looks like this:
+  #
+  # - task: AzureStaticWebApp@0
+  #   inputs:
+  #     app_location: dist
+  #     skip_app_build: true
+  #     azure_static_web_apps_api_token: $(DEPLOYMENT_TOKEN)   # stored as a secret pipeline variable
